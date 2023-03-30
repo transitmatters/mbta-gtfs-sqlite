@@ -1,5 +1,4 @@
 from enum import Enum
-from datetime import date
 from typing import Literal
 
 from sqlalchemy.types import Date, ForeignKey
