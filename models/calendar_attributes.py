@@ -29,7 +29,7 @@ TServiceScheduleTypicality = Literal[
 
 
 class CalendarAttribute(Base):
-    service_id: Mapped[str] = mapped_column(String)
+    service_id: Mapped[str] = mapped_column(String, index=True)
     service_description: Mapped[str] = mapped_column(String)
     service_schedule_name: Mapped[str] = mapped_column(String)
     service_schedule_type: Mapped[str] = mapped_column(String)

@@ -53,7 +53,7 @@ class Stop(Base):
     stop_url: Mapped[str] = mapped_column(String)
     level_id: Mapped[str] = mapped_column(String)
     location_type: Mapped[TLocationType] = mapped_column(gtfs_enum_type(LocationType))
-    parent_station: Mapped[str] = mapped_column(String)
+    parent_station: Mapped[str] = mapped_column(String, index=True)
     wheelchair_boarding: Mapped[TWheelchairBoardingType] = mapped_column(
         gtfs_enum_type(WheelchairBoardingType)
     )

@@ -27,7 +27,7 @@ TRoutePatternTypicality = Literal[
 
 class RoutePattern(Base):
     route_pattern_id: Mapped[str] = mapped_column(String)
-    route_id: Mapped[str] = mapped_column(String)
+    route_id: Mapped[str] = mapped_column(String, index=True)
     direction_id: Mapped[str] = mapped_column(String)
     route_pattern_name: Mapped[str] = mapped_column(String)
     route_pattern_time_desc: Mapped[str] = mapped_column(String)

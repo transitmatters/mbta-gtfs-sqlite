@@ -14,8 +14,4 @@ class Base(DeclarativeBase):
     id = mapped_column(Integer, autoincrement=True, primary_key=True)
 
     # Basically every model is going to belong to a specific GtfsFeedInstance
-    feed_info_id = mapped_column(
-        ForeignKey("FeedInfo.id"),
-        nullable=False,
-        default=id if __tablename__ == "FeedInfo" else None,
-    )
+    feed_info_id = mapped_column(ForeignKey("FeedInfo.id"), nullable=False, index=True)

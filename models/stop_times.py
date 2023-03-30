@@ -5,8 +5,8 @@ from models.base import Base
 
 
 class StopTime(Base):
-    trip_id: Mapped[str] = mapped_column(String)
-    stop_id: Mapped[str] = mapped_column(String)
+    trip_id: Mapped[str] = mapped_column(String, index=True)
+    stop_id: Mapped[str] = mapped_column(String, index=True)
     arrival_time: Mapped[int] = mapped_column(Integer)
     departure_time: Mapped[int] = mapped_column(Integer)
     stop_sequence: Mapped[int] = mapped_column(Integer)

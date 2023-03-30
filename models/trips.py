@@ -36,8 +36,8 @@ TBikesAllowed = Literal[
 
 
 class Trip(Base):
-    route_id: Mapped[str] = mapped_column(String)
-    service_id: Mapped[str] = mapped_column(String)
+    route_id: Mapped[str] = mapped_column(String, index=True)
+    service_id: Mapped[str] = mapped_column(String, index=True)
     trip_id: Mapped[str] = mapped_column(String)
     trip_headsign: Mapped[str] = mapped_column(String)
     trip_short_name: Mapped[str] = mapped_column(String)

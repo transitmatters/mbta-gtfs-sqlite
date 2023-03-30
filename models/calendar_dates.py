@@ -21,7 +21,7 @@ TCalendarServiceExceptionType = Literal[
 
 
 class CalendarServiceException(Base):
-    service_id: Mapped[str] = mapped_column(String)
+    service_id: Mapped[str] = mapped_column(String, index=True)
     date: Mapped[datetime.date] = mapped_column(Date)
     exception_type: Mapped[TCalendarServiceExceptionType] = mapped_column(
         gtfs_enum_type(CalendarServiceExceptionType)

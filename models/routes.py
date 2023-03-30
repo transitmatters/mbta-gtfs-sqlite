@@ -47,5 +47,5 @@ class Route(Base):
     route_text_color: Mapped[str] = mapped_column(String)
     route_sort_order: Mapped[int] = mapped_column(Integer)
     route_fare_class: Mapped[str] = mapped_column(String)
-    line_id: Mapped[str] = mapped_column(String)
+    line_id: Mapped[str] = mapped_column(String, index=True)
     listed_route: Mapped[str] = mapped_column(String)
