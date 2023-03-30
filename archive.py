@@ -12,6 +12,8 @@ from tqdm import tqdm
 from utils.decorators import listify
 from utils.time import date_to_string, date_from_string
 from reader import GtfsReader
+from session import create_sqlalchemy_session_for_file
+from ingest import ingest_gtfs_csv_into_session
 from config import DEFAULT_FEEDS_ROOT, MBTA_GTFS_ARCHIVE_URL
 
 
@@ -50,7 +52,7 @@ class GtfsFeedDownload:
     @cached_property
     def reader(self):
         return GtfsReader(root=self.gtfs_subdir_path)
-    
+
     def ensure_subdirectory(self):
         if not path.exists(self.subdirectory):
             mkdir(self.subdirectory)
@@ -79,17 +81,25 @@ class GtfsFeedDownload:
         return target_path
 
     def unzip(self) -> str:
-        self.ensure_subdirectory()
+        self.download_gtfs_zip()
         target_path = self.gtfs_subdir_path
         if path.exists(target_path):
             return
-        self.download_gtfs_zip()
         print(f"Extracting {self.feed.remote_url} to {self.gtfs_subdir_path}")
         try:
             zf = ZipFile(self.gtfs_zip_path)
             zf.extractall(self.gtfs_subdir_path)
         except BadZipFile:
             print(f"Bad zip file: {self.gtfs_zip_path}")
+        return target_path
+
+    def ingest_to_db(self):
+        self.unzip()
+        target_path = self.sqlite_db_path
+        if path.exists(target_path):
+            return target_path
+        session = create_sqlalchemy_session_for_file(self.sqlite_db_path)
+        ingest_gtfs_csv_into_session(session, self.reader)
         return target_path
 
 
@@ -125,4 +135,4 @@ def download_feeds(
         mkdir(into_directory)
     for feed in feeds:
         download = GtfsFeedDownload(feed, into_directory)
-        download.unzip()
+        download.ingest_to_db()
