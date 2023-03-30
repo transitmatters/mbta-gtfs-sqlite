@@ -48,7 +48,7 @@ class GtfsFeedDownload:
 
     @cached_property
     def sqlite_db_path(self):
-        return self.child_by_name("gtfs.db")
+        return self.child_by_name("gtfs.sqlite3")
 
     @cached_property
     def reader(self):
