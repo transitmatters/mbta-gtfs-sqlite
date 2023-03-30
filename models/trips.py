@@ -5,6 +5,7 @@ from sqlalchemy.types import String
 from sqlalchemy.orm import mapped_column, Mapped
 
 from models.base import Base
+from models.routes import RouteType, TRouteType
 from utils.enum import gtfs_enum_type
 
 
@@ -42,7 +43,10 @@ class Trip(Base):
     trip_short_name: Mapped[str] = mapped_column(String)
     direction_id: Mapped[str] = mapped_column(String)
     block_id: Mapped[str] = mapped_column(String)
+    shape_id: Mapped[str] = mapped_column(String)
     wheelchair_accessible: Mapped[TWheelchairAccessibility] = mapped_column(
         gtfs_enum_type(WheelchairAccessibility)
     )
+    trip_route_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType))
+    route_pattern_id: Mapped[str] = mapped_column(String)
     bikes_allowed: Mapped[TBikesAllowed] = mapped_column(gtfs_enum_type(BikesAllowed))

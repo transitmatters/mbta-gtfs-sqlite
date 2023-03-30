@@ -36,6 +36,6 @@ class CalendarAttribute(Base):
     service_schedule_typicality: Mapped[TServiceScheduleTypicality] = mapped_column(
         gtfs_enum_type(ServiceScheduleTypicality)
     )
-    rating_start_date: Mapped[date] = mapped_column(Date)
-    rating_end_date: Mapped[date] = mapped_column(Date)
+    rating_start_date: Mapped[date] = mapped_column(Date, nullable=True)
+    rating_end_date: Mapped[date] = mapped_column(Date, nullable=True)
     rating_description: Mapped[str] = mapped_column(String)

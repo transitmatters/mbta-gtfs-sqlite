@@ -5,9 +5,11 @@ from sqlalchemy.orm import mapped_column, Mapped
 
 from models.base import Base
 
+
 class FeedInfo(Base):
+    feed_publisher_name: Mapped[str] = mapped_column(String)
     feed_publisher_url: Mapped[str] = mapped_column(String)
-    feed_publisher: Mapped[str] = mapped_column(String)
+    feed_lang: Mapped[str] = mapped_column(String)
     feed_start_date: Mapped[date] = mapped_column(Date)
     feed_end_date: Mapped[date] = mapped_column(Date)
     feed_version: Mapped[str] = mapped_column(String)

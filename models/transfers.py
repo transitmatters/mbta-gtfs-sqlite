@@ -44,11 +44,11 @@ class Transfer(Base):
     from_stop_id: Mapped[str] = mapped_column(String)
     to_stop_id: Mapped[str] = mapped_column(String)
     transfer_type: Mapped[TTranferType] = mapped_column(gtfs_enum_type(TransferType))
-    min_transfer_time: Mapped[int] = mapped_column(Integer)
-    min_walk_time: Mapped[int] = mapped_column(Integer)
-    min_wheelchair_time: Mapped[int] = mapped_column(Integer)
-    suggested_buffer: Mapped[int] = mapped_column(Integer)
-    wheelchair_tranfer: Mapped[TWheelchairAccessibility] = mapped_column(
+    min_transfer_time: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_walk_time: Mapped[int] = mapped_column(Integer, nullable=True)
+    min_wheelchair_time: Mapped[int] = mapped_column(Integer, nullable=True)
+    suggested_buffer_time: Mapped[int] = mapped_column(Integer, nullable=True)
+    wheelchair_transfer: Mapped[TWheelchairAccessibility] = mapped_column(
         gtfs_enum_type(WheelchairAccessibility)
     )
     from_trip_id: Mapped[str] = mapped_column(String)

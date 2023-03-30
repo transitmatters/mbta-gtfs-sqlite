@@ -9,4 +9,4 @@ class ShapePoint(Base):
     shape_pt_lat: Mapped[float] = mapped_column(Float)
     shape_pt_lon: Mapped[float] = mapped_column(Float)
     shape_pt_sequence: Mapped[int] = mapped_column(Integer)
-    shape_dist_traveled: Mapped[float] = mapped_column(Float)
+    shape_dist_traveled: Mapped[float] = mapped_column(Float, nullable=True)

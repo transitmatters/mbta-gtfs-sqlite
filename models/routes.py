@@ -37,6 +37,7 @@ TRouteType = Literal[
 
 class Route(Base):
     route_id: Mapped[str] = mapped_column(String)
+    agency_id: Mapped[str] = mapped_column(String)
     route_short_name: Mapped[str] = mapped_column(String)
     route_long_name: Mapped[str] = mapped_column(String)
     route_desc: Mapped[str] = mapped_column(String)

@@ -5,6 +5,8 @@ from os import path, mkdir
 from typing import List
 from csv import DictReader
 from zipfile import ZipFile, BadZipFile
+from hashlib import md5
+
 
 import requests
 from tqdm import tqdm
@@ -13,7 +15,6 @@ from utils.decorators import listify
 from utils.time import date_to_string, date_from_string
 from reader import GtfsReader
 from session import create_sqlalchemy_session_for_file
-from ingest import ingest_gtfs_csv_into_session
 from config import DEFAULT_FEEDS_ROOT, MBTA_GTFS_ARCHIVE_URL
 
 
@@ -47,11 +48,22 @@ class GtfsFeedDownload:
 
     @cached_property
     def sqlite_db_path(self):
-        return self.child_by_name("feed.db")
+        return self.child_by_name("gtfs.db")
 
     @cached_property
     def reader(self):
         return GtfsReader(root=self.gtfs_subdir_path)
+
+    @cached_property
+    def zip_md5_checksum(self):
+        self.download_gtfs_zip()
+        with open(self.gtfs_zip_path, "rb") as file:
+            chunk_size = 4096
+            hasher = md5()
+            while chunk := file.read(chunk_size):
+                hasher.update(chunk)
+        checksum = hasher.hexdigest()
+        return checksum
 
     def ensure_subdirectory(self):
         if not path.exists(self.subdirectory):
@@ -94,12 +106,14 @@ class GtfsFeedDownload:
         return target_path
 
     def ingest_to_db(self):
+        from ingest import ingest_gtfs_csv_into_session
+
         self.unzip()
         target_path = self.sqlite_db_path
         if path.exists(target_path):
             return target_path
         session = create_sqlalchemy_session_for_file(self.sqlite_db_path)
-        ingest_gtfs_csv_into_session(session, self.reader)
+        ingest_gtfs_csv_into_session(session, self)
         return target_path
 
 
