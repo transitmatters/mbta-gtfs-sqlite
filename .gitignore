@@ -159,4 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Nah
 .vscode/
+
+# Holds local copies of GTFS feeds and downstream artifacts
+feeds/
