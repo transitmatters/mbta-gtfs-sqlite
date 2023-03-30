@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Literal
 from datetime import date
 
-from sqlalchemy.types import String, Date, ForeignKey
+from sqlalchemy.types import String, Date
 from sqlalchemy.orm import mapped_column, Mapped
 
 from models.base import Base
@@ -29,7 +29,7 @@ TServiceScheduleTypicality = Literal[
 
 
 class CalendarAttribute(Base):
-    service_id: Mapped[str] = mapped_column(ForeignKey("CalendarService.service_id"))
+    service_id: Mapped[str] = mapped_column(String)
     service_description: Mapped[str] = mapped_column(String)
     service_schedule_name: Mapped[str] = mapped_column(String)
     service_schedule_type: Mapped[str] = mapped_column(String)
