@@ -15,5 +15,5 @@ class StopTime(Base):
     drop_off_type: Mapped[str] = mapped_column(String)
     timepoint: Mapped[str] = mapped_column(String)
     checkpoint_id: Mapped[str] = mapped_column(String)
-    continuous_pickup: Mapped[str] = mapped_column(String)
-    continuous_drop_off: Mapped[str] = mapped_column(String)
+    continuous_pickup: Mapped[str] = mapped_column(String, nullable=True)
+    continuous_drop_off: Mapped[str] = mapped_column(String, nullable=True)

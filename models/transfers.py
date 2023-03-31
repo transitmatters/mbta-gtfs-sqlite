@@ -51,5 +51,5 @@ class Transfer(Base):
     wheelchair_transfer: Mapped[TWheelchairAccessibility] = mapped_column(
         gtfs_enum_type(WheelchairAccessibility)
     )
-    from_trip_id: Mapped[str] = mapped_column(String)
-    to_trip_id: Mapped[str] = mapped_column(String)
+    from_trip_id: Mapped[str] = mapped_column(String, nullable=True)
+    to_trip_id: Mapped[str] = mapped_column(String, nullable=True)

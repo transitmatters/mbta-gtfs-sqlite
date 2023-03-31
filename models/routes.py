@@ -9,6 +9,7 @@ from utils.enum import gtfs_enum_type
 
 
 class RouteType(Enum):
+    NOT_SPECIFIED = ""  # Not in GTFS but seen in a lot of Trips
     TRAM = "0"
     METRO = "1"
     RAIL = "2"

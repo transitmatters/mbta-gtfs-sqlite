@@ -69,6 +69,7 @@ def ingest_rows(
     feed_info: FeedInfo,
     rows: Generator[Dict[str, str], None, None],
     transforms: RowTransforms = {},
+    individually: bool = False
 ):
     mappings = [
         {
@@ -77,10 +78,14 @@ def ingest_rows(
         }
         for row in rows()
     ]
-    session.bulk_insert_mappings(model, mappings)
+    if individually:
+        for mapping in mappings:
+            session.add(model(**mapping))
+    else:
+        session.bulk_insert_mappings(model, mappings)
 
 
-def ingest_gtfs_csv_into_session(session: Session, download: GtfsFeedDownload):
+def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
     reader = download.reader
     feed_info = ingest_feed_info(session, download)
     ingest_rows(

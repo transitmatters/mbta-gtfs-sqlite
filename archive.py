@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import date
 from functools import cached_property
-from os import path, mkdir
-from typing import List
+from os import path, mkdir, remove
+from shutil import copy
+from typing import List, Union
 from csv import DictReader
 from zipfile import ZipFile, BadZipFile
 from hashlib import md5
@@ -49,6 +50,10 @@ class GtfsFeedDownload:
     @cached_property
     def sqlite_db_path(self):
         return self.child_by_name("gtfs.sqlite3")
+
+    @cached_property
+    def sqlite_summary_db_path(self):
+        return self.child_by_name("gtfs_summary.sqlite3")
 
     @cached_property
     def reader(self):
@@ -106,20 +111,39 @@ class GtfsFeedDownload:
         return target_path
 
     def ingest_to_db(self):
-        from ingest import ingest_gtfs_csv_into_session
+        from ingest import ingest_gtfs_csv_into_db
 
-        self.unzip()
-        target_path = self.sqlite_db_path
+        try:
+            self.unzip()
+            target_path = self.sqlite_db_path
+            if path.exists(target_path):
+                return target_path
+            session = create_sqlalchemy_session_for_file(target_path)
+            ingest_gtfs_csv_into_db(session, self)
+            return target_path
+        except Exception:
+            remove(target_path)
+            raise
+
+    def summarize_db(self):
+        from summarize import summarize_db
+
+        self.ingest_to_db()
+        target_path = self.sqlite_summary_db_path
         if path.exists(target_path):
             return target_path
-        session = create_sqlalchemy_session_for_file(self.sqlite_db_path)
-        ingest_gtfs_csv_into_session(session, self)
-        return target_path
+        try:
+            copy(self.sqlite_db_path, target_path)
+            session = create_sqlalchemy_session_for_file(target_path)
+            summarize_db(session)
+        except Exception:
+            remove(target_path)
+            raise
 
 
 @listify
 def list_feeds_from_archive(
-    load_start_date: date,
+    load_start_date: Union[date, None] = None,
     archive_url: str = MBTA_GTFS_ARCHIVE_URL,
 ) -> List[GtfsFeed]:
     req = requests.get(archive_url)
@@ -130,7 +154,7 @@ def list_feeds_from_archive(
         end_date = date_from_string(entry["feed_end_date"])
         version = entry["feed_version"]
         url = entry["archive_url"]
-        if start_date < load_start_date:
+        if load_start_date is not None and start_date < load_start_date:
             continue
         gtfs_feed = GtfsFeed(
             start_date=start_date,
@@ -149,4 +173,4 @@ def download_feeds(
         mkdir(into_directory)
     for feed in feeds:
         download = GtfsFeedDownload(feed, into_directory)
-        download.ingest_to_db()
+        download.summarize_db()
