@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Callable, Type, Generator
+from typing import Dict, Any, Callable, List, Union, Type, Iterable
 
 from archive import GtfsFeedDownload
 from utils.time import date_from_string, seconds_from_string
+from utils.decorators import listify
 from models.base import Base
 from models.calendar_attributes import CalendarAttribute
 from models.calendar_dates import CalendarServiceException
@@ -40,6 +41,39 @@ def transform_row_dict(
     }
 
 
+def bucket_by(
+    items: List[any],
+    key_getter: Union[str, Callable[[Any], str]],
+) -> Dict[str, List[any]]:
+    res = {}
+    if isinstance(key_getter, str):
+        key_getter_as_str = key_getter
+        key_getter = lambda dict: dict[key_getter_as_str]
+    for item in items:
+        key = key_getter(item)
+        res.setdefault(key, [])
+        res[key].append(item)
+    return res
+
+
+@listify
+def get_trip_rows_with_extra_time_fields(
+    trip_rows: List[Dict[str, str]],
+    stop_time_rows: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
+    stop_times_by_trip_id = bucket_by(stop_time_rows, "trip_id")
+    for trip_row in trip_rows:
+        stop_times_for_trip = sorted(
+            stop_times_by_trip_id[trip_row["trip_id"]],
+            key=lambda stop_time: int(stop_time["stop_sequence"]),
+        )
+        yield {
+            **trip_row,
+            "start_time": stop_times_for_trip[0]["arrival_time"],
+            "end_time": stop_times_for_trip[-1]["arrival_time"],
+        }
+
+
 def ingest_feed_info(session: Session, download: GtfsFeedDownload) -> FeedInfo:
     num_feed_infos = session.query(FeedInfo).count()
     next_id = 1 + num_feed_infos
@@ -67,16 +101,16 @@ def ingest_rows(
     session: Session,
     model: Type[Base],
     feed_info: FeedInfo,
-    rows: Generator[Dict[str, str], None, None],
+    rows: Iterable[Dict[str, str]],
     transforms: RowTransforms = {},
-    individually: bool = False
+    individually: bool = False,
 ):
     mappings = [
         {
             **transform_row_dict(row, transforms),
             "feed_info_id": feed_info.id,
         }
-        for row in rows()
+        for row in rows
     ]
     if individually:
         for mapping in mappings:
@@ -88,11 +122,14 @@ def ingest_rows(
 def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
     reader = download.reader
     feed_info = ingest_feed_info(session, download)
+    stop_times = list(reader.read_stop_times())
+    trips = list(reader.read_trips())
+    trip_rows = get_trip_rows_with_extra_time_fields(trips, stop_times)
     ingest_rows(
         session=session,
         model=CalendarService,
         feed_info=feed_info,
-        rows=reader.read_calendar,
+        rows=reader.read_calendar(),
         transforms={
             "start_date": date_from_string,
             "end_date": date_from_string,
@@ -102,7 +139,7 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=CalendarServiceException,
         feed_info=feed_info,
-        rows=reader.read_calendar_dates,
+        rows=reader.read_calendar_dates(),
         transforms={
             "date": date_from_string,
         },
@@ -111,7 +148,7 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=CalendarAttribute,
         feed_info=feed_info,
-        rows=reader.read_calendar_attributes,
+        rows=reader.read_calendar_attributes(),
         transforms={
             "rating_start_date": nullable(date_from_string),
             "rating_end_date": nullable(date_from_string),
@@ -121,25 +158,25 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=Line,
         feed_info=feed_info,
-        rows=reader.read_lines,
+        rows=reader.read_lines(),
     )
     ingest_rows(
         session=session,
         model=Route,
         feed_info=feed_info,
-        rows=reader.read_routes,
+        rows=reader.read_routes(),
     )
     ingest_rows(
         session=session,
         model=RoutePattern,
         feed_info=feed_info,
-        rows=reader.read_route_patterns,
+        rows=reader.read_route_patterns(),
     )
     ingest_rows(
         session=session,
         model=ShapePoint,
         feed_info=feed_info,
-        rows=reader.read_shapes,
+        rows=reader.read_shapes(),
         transforms={
             "shape_pt_lat": float,
             "shape_pt_lon": float,
@@ -151,7 +188,7 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=Stop,
         feed_info=feed_info,
-        rows=reader.read_stops,
+        rows=reader.read_stops(),
         transforms={
             "stop_lat": nullable(float),
             "stop_lon": nullable(float),
@@ -161,7 +198,7 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=Transfer,
         feed_info=feed_info,
-        rows=reader.read_transfers,
+        rows=reader.read_transfers(),
         transforms={
             "min_transfer_time": nullable(int),
             "min_walk_time": nullable(int),
@@ -173,13 +210,17 @@ def ingest_gtfs_csv_into_db(session: Session, download: GtfsFeedDownload):
         session=session,
         model=Trip,
         feed_info=feed_info,
-        rows=reader.read_trips,
+        rows=trip_rows,
+        transforms={
+            "start_time": seconds_from_string,
+            "end_time": seconds_from_string,
+        },
     )
     ingest_rows(
         session=session,
         model=StopTime,
         feed_info=feed_info,
-        rows=reader.read_stop_times,
+        rows=stop_times,
         transforms={
             "arrival_time": seconds_from_string,
             "departure_time": seconds_from_string,

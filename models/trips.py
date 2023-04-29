@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from sqlalchemy.types import String
+from sqlalchemy.types import String, Integer
 from sqlalchemy.orm import mapped_column, Mapped
 
 from models.base import Base
@@ -50,3 +50,7 @@ class Trip(Base):
     trip_route_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType))
     route_pattern_id: Mapped[str] = mapped_column(String)
     bikes_allowed: Mapped[TBikesAllowed] = mapped_column(gtfs_enum_type(BikesAllowed))
+    # start_time and end_time are not part of GTFS but they're useful information to have
+    # in smaller versions of the database without StopTimes
+    start_time: Mapped[int] = mapped_column(Integer)
+    end_time: Mapped[int] = mapped_column(Integer)

@@ -52,8 +52,8 @@ class GtfsFeedDownload:
         return self.child_by_name("gtfs.sqlite3")
 
     @cached_property
-    def sqlite_summary_db_path(self):
-        return self.child_by_name("gtfs_summary.sqlite3")
+    def sqlite_compact_db_path(self):
+        return self.child_by_name("gtfs_compact.sqlite3")
 
     @cached_property
     def reader(self):
@@ -125,17 +125,17 @@ class GtfsFeedDownload:
             remove(target_path)
             raise
 
-    def summarize_db(self):
-        from summarize import summarize_db
+    def compactify_db(self):
+        from remove_stop_times import remove_stop_times
 
         self.ingest_to_db()
-        target_path = self.sqlite_summary_db_path
+        target_path = self.sqlite_compact_db_path
         if path.exists(target_path):
             return target_path
         try:
             copy(self.sqlite_db_path, target_path)
             session = create_sqlalchemy_session_for_file(target_path)
-            summarize_db(session)
+            remove_stop_times(session)
         except Exception:
             remove(target_path)
             raise
@@ -173,4 +173,4 @@ def download_feeds(
         mkdir(into_directory)
     for feed in feeds:
         download = GtfsFeedDownload(feed, into_directory)
-        download.summarize_db()
+        download.compactify_db()
