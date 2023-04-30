@@ -114,7 +114,7 @@ class GtfsFeed:
         return target_path
 
     def ingest_to_db(self):
-        from ingest import ingest_gtfs_csv_into_db
+        from .ingest import ingest_gtfs_csv_into_db
 
         try:
             self.unzip()
@@ -129,7 +129,7 @@ class GtfsFeed:
             raise
 
     def compactify_db(self):
-        from compact import make_compact_db
+        from .compact import make_compact_db
 
         self.ingest_to_db()
         target_path = self.sqlite_compact_db_path
