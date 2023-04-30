@@ -1,7 +1,8 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from models.stop_times import StopTime
+from .models.stop_times import StopTime
+
 
 def vacuum(session: Session):
     session.commit()
@@ -9,6 +10,6 @@ def vacuum(session: Session):
     session.commit()
 
 
-def remove_stop_times(session: Session):
+def make_compact_db(session: Session):
     session.query(StopTime).delete()
     vacuum(session)

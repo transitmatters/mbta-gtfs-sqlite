@@ -5,8 +5,8 @@ import datetime
 from sqlalchemy.types import Date, String
 from sqlalchemy.orm import mapped_column, Mapped
 
-from models.base import Base
-from utils.enum import gtfs_enum_type
+from .base import Base
+from ..utils.enum import gtfs_enum_type
 
 
 class CalendarServiceExceptionType(Enum):
@@ -26,4 +26,4 @@ class CalendarServiceException(Base):
     exception_type: Mapped[TCalendarServiceExceptionType] = mapped_column(
         gtfs_enum_type(CalendarServiceExceptionType)
     )
-    holiday_name: Mapped[str] = mapped_column(String)
+    holiday_name: Mapped[str] = mapped_column(String, nullable=True)

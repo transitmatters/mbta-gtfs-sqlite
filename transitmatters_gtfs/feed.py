@@ -1,10 +1,7 @@
-from dataclasses import dataclass
 from datetime import date
 from functools import cached_property
 from os import path, mkdir, remove
 from shutil import copy
-from typing import List, Union
-from csv import DictReader
 from zipfile import ZipFile, BadZipFile
 from hashlib import md5
 
@@ -12,29 +9,35 @@ from hashlib import md5
 import requests
 from tqdm import tqdm
 
-from utils.decorators import listify
-from utils.time import date_to_string, date_from_string
-from reader import GtfsReader
-from session import create_sqlalchemy_session_for_file
-from config import DEFAULT_FEEDS_ROOT, MBTA_GTFS_ARCHIVE_URL
+from .utils.time import date_to_string
+from .reader import GtfsReader
+from .session import create_sqlalchemy_session
 
 
-@dataclass
 class GtfsFeed:
-    start_date: date
-    end_date: date
-    version: str
-    remote_url: str
+    def __init__(
+        self,
+        feeds_root: str,
+        start_date: date,
+        end_date: date,
+        version: str,
+        url: str,
+    ):
+        if not path.exists(feeds_root):
+            mkdir(feeds_root)
+        self.feeds_root = feeds_root
+        self.start_date = start_date
+        self.end_date = end_date
+        self.version = version
+        self.url = url
 
-
-@dataclass
-class GtfsFeedDownload:
-    feed: GtfsFeed
-    local_base_path: str
+    @cached_property
+    def key(self):
+        return date_to_string(self.start_date)
 
     @cached_property
     def subdirectory(self):
-        return path.join(self.local_base_path, date_to_string(self.feed.start_date))
+        return path.join(self.feeds_root, self.key)
 
     def child_by_name(self, filename):
         return path.join(self.subdirectory, filename)
@@ -81,14 +84,14 @@ class GtfsFeedDownload:
             return target_path
         if not path.exists(self.local_base_path):
             mkdir(self.local_base_path)
-        response = requests.get(self.feed.remote_url, stream=True)
+        response = requests.get(self.url, stream=True)
         total_size_in_bytes = int(response.headers.get("content-length", 0))
         block_size = 1024
         progress_bar = tqdm(
             total=total_size_in_bytes,
             unit="iB",
             unit_scale=True,
-            desc=f"Downloading {self.feed.remote_url}",
+            desc=f"Downloading {self.url}",
         )
         with open(target_path, "wb") as file:
             for data in response.iter_content(block_size):
@@ -102,7 +105,7 @@ class GtfsFeedDownload:
         target_path = self.gtfs_subdir_path
         if path.exists(target_path):
             return
-        print(f"Extracting {self.feed.remote_url} to {self.gtfs_subdir_path}")
+        print(f"Extracting {self.url} to {self.gtfs_subdir_path}")
         try:
             zf = ZipFile(self.gtfs_zip_path)
             zf.extractall(self.gtfs_subdir_path)
@@ -118,7 +121,7 @@ class GtfsFeedDownload:
             target_path = self.sqlite_db_path
             if path.exists(target_path):
                 return target_path
-            session = create_sqlalchemy_session_for_file(target_path)
+            session = create_sqlalchemy_session(target_path)
             ingest_gtfs_csv_into_db(session, self)
             return target_path
         except Exception:
@@ -126,7 +129,7 @@ class GtfsFeedDownload:
             raise
 
     def compactify_db(self):
-        from remove_stop_times import remove_stop_times
+        from compact import make_compact_db
 
         self.ingest_to_db()
         target_path = self.sqlite_compact_db_path
@@ -134,43 +137,12 @@ class GtfsFeedDownload:
             return target_path
         try:
             copy(self.sqlite_db_path, target_path)
-            session = create_sqlalchemy_session_for_file(target_path)
-            remove_stop_times(session)
+            session = create_sqlalchemy_session(target_path)
+            make_compact_db(session)
         except Exception:
             remove(target_path)
             raise
 
-
-@listify
-def list_feeds_from_archive(
-    load_start_date: Union[date, None] = None,
-    archive_url: str = MBTA_GTFS_ARCHIVE_URL,
-) -> List[GtfsFeed]:
-    req = requests.get(archive_url)
-    lines = req.text.splitlines()
-    reader = DictReader(lines, delimiter=",")
-    for entry in reader:
-        start_date = date_from_string(entry["feed_start_date"])
-        end_date = date_from_string(entry["feed_end_date"])
-        version = entry["feed_version"]
-        url = entry["archive_url"]
-        if load_start_date is not None and start_date < load_start_date:
-            continue
-        gtfs_feed = GtfsFeed(
-            start_date=start_date,
-            end_date=end_date,
-            version=version,
-            remote_url=url,
-        )
-        yield gtfs_feed
-
-
-def download_feeds(
-    feeds: List[GtfsFeed],
-    into_directory: str = DEFAULT_FEEDS_ROOT,
-) -> List[GtfsFeedDownload]:
-    if not path.exists(into_directory):
-        mkdir(into_directory)
-    for feed in feeds:
-        download = GtfsFeedDownload(feed, into_directory)
-        download.compactify_db()
+    def create_all_files(self):
+        # This will call other methods as necessary
+        return self.compactify_db()

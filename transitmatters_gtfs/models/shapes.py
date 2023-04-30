@@ -1,7 +1,7 @@
 from sqlalchemy.types import String, Integer, Float
 from sqlalchemy.orm import mapped_column, Mapped
 
-from models.base import Base
+from .base import Base
 
 
 class ShapePoint(Base):

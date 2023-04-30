@@ -5,8 +5,8 @@ from datetime import date
 from sqlalchemy.types import String, Date
 from sqlalchemy.orm import mapped_column, Mapped
 
-from models.base import Base
-from utils.enum import gtfs_enum_type
+from .base import Base
+from ..utils.enum import gtfs_enum_type
 
 
 class ServiceScheduleTypicality(Enum):

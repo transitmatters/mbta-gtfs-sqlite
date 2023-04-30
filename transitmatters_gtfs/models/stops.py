@@ -4,9 +4,9 @@ from typing import Literal
 from sqlalchemy.types import String, Float
 from sqlalchemy.orm import mapped_column, Mapped
 
-from models.base import Base
-from models.routes import RouteType, TRouteType
-from utils.enum import gtfs_enum_type
+from .base import Base
+from .routes import RouteType, TRouteType
+from ..utils.enum import gtfs_enum_type
 
 
 class LocationType(Enum):
@@ -44,20 +44,24 @@ class Stop(Base):
     stop_code: Mapped[str] = mapped_column(String)
     stop_name: Mapped[str] = mapped_column(String)
     stop_desc: Mapped[str] = mapped_column(String)
-    platform_code: Mapped[str] = mapped_column(String)
-    platform_name: Mapped[str] = mapped_column(String)
+    platform_code: Mapped[str] = mapped_column(String, nullable=True)
+    platform_name: Mapped[str] = mapped_column(String, nullable=True)
     stop_lat: Mapped[float] = mapped_column(Float, nullable=True)
     stop_lon: Mapped[float] = mapped_column(Float, nullable=True)
     zone_id: Mapped[str] = mapped_column(String)
-    stop_address: Mapped[str] = mapped_column(String)
-    stop_url: Mapped[str] = mapped_column(String)
-    level_id: Mapped[str] = mapped_column(String)
-    location_type: Mapped[TLocationType] = mapped_column(gtfs_enum_type(LocationType))
+    stop_address: Mapped[str] = mapped_column(String, nullable=True)
+    stop_url: Mapped[str] = mapped_column(String, nullable=True)
+    level_id: Mapped[str] = mapped_column(String, nullable=True)
+    location_type: Mapped[TLocationType] = mapped_column(
+        gtfs_enum_type(LocationType), 
+        nullable=True,
+    )
     parent_station: Mapped[str] = mapped_column(String, index=True)
     wheelchair_boarding: Mapped[TWheelchairBoardingType] = mapped_column(
-        gtfs_enum_type(WheelchairBoardingType)
+        gtfs_enum_type(WheelchairBoardingType),
+        nullable=True,
     )
-    municipality: Mapped[str] = mapped_column(String)
-    on_street: Mapped[str] = mapped_column(String)
-    at_street: Mapped[str] = mapped_column(String)
-    vehicle_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType))
+    municipality: Mapped[str] = mapped_column(String, nullable=True)
+    on_street: Mapped[str] = mapped_column(String, nullable=True)
+    at_street: Mapped[str] = mapped_column(String, nullable=True)
+    vehicle_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType), nullable=True)

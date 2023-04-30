@@ -4,8 +4,8 @@ from typing import Literal
 from sqlalchemy.types import String, Integer
 from sqlalchemy.orm import mapped_column, Mapped
 
-from models.base import Base
-from utils.enum import gtfs_enum_type
+from .base import Base
+from ..utils.enum import gtfs_enum_type
 
 
 class RouteType(Enum):
@@ -47,6 +47,6 @@ class Route(Base):
     route_color: Mapped[str] = mapped_column(String)
     route_text_color: Mapped[str] = mapped_column(String)
     route_sort_order: Mapped[int] = mapped_column(Integer)
-    route_fare_class: Mapped[str] = mapped_column(String)
-    line_id: Mapped[str] = mapped_column(String, index=True)
-    listed_route: Mapped[str] = mapped_column(String)
+    route_fare_class: Mapped[str] = mapped_column(String, nullable=True)
+    line_id: Mapped[str] = mapped_column(String, index=True, nullable=True)
+    listed_route: Mapped[str] = mapped_column(String, nullable=True)
