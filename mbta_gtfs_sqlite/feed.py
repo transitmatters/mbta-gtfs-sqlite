@@ -82,8 +82,8 @@ class GtfsFeed:
         target_path = self.gtfs_zip_path
         if path.exists(target_path):
             return target_path
-        if not path.exists(self.local_base_path):
-            mkdir(self.local_base_path)
+        if not path.exists(self.subdirectory):
+            mkdir(self.subdirectory)
         response = requests.get(self.url, stream=True)
         total_size_in_bytes = int(response.headers.get("content-length", 0))
         block_size = 1024
@@ -116,9 +116,9 @@ class GtfsFeed:
     def ingest_to_db(self):
         from .ingest import ingest_gtfs_csv_into_db
 
+        target_path = self.sqlite_db_path
         try:
             self.unzip()
-            target_path = self.sqlite_db_path
             if path.exists(target_path):
                 return target_path
             session = create_sqlalchemy_session(target_path)
