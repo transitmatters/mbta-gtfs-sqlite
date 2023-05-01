@@ -35,7 +35,7 @@ The subdirectory names are `keys` — string representation of feed start dates.
 - `data.zip`: the zipped version of the raw GTFS feed, straight from the MBTA
 - `feed`: an unzipped version of the raw GTFS feed
 
-If you provide an S3 bucket, this path structure will be mirrored remotely. However, the library does not upload `feed/` or `data.zip` to S3 — these are considered intermediate build artifacts that are useful for debugging purposes.
+If you provide an S3 bucket, this path structure will be mirrored remotely. However, the library does not upload `feed` or `data.zip` to S3 — these are considered intermediate build artifacts that are useful for debugging purposes.
 
 ## Retrieving the archive
 
@@ -48,7 +48,7 @@ The `MbtaGtfsArchive` class serves as the entrypoint to the MBTA's archive:
 [GtfsFeed(20090313), GtfsFeed(20090403), ...]
 ```
 
-Its methods all return `GtfsFeed` objects (explained below). These have a `key`, which is a string  of the feed's effective start date (like `20210403`).
+Its methods all return `GtfsFeed` objects, which are explained below.
 
 ### `MbtaGtfsArchive`
 
