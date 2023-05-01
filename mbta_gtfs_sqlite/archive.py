@@ -1,6 +1,6 @@
 from csv import DictReader
 from datetime import date
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 import requests
 
@@ -21,9 +21,15 @@ class MbtaGtfsArchive(object):
         archive_url=MBTA_GTFS_ARCHIVE_URL,
     ):
         self.local_archive_path = local_archive_path
-        self.s3_bucket = s3_bucket
+        self._s3_bucket = s3_bucket
         self.archive_url = archive_url
         self._load_feeds()
+
+    @property
+    def s3_bucket(self):
+        if self._s3_bucket is None:
+            raise RuntimeError("No S3 bucket configured for archive")
+        return self._s3_bucket
 
     def _load_feeds(self):
         req = requests.get(self.archive_url)
@@ -50,17 +56,11 @@ class MbtaGtfsArchive(object):
     def get_feed_by_key(self, key: str):
         return self._feeds.get(key)
 
-    def get_feed_for_date(self, target_date: date):
-        for feed in self._feeds.values():
-            if target_date >= feed.start_date and target_date <= feed.end_date:
-                return feed
-        return None
-
     def get_feeds_for_dates(
         self,
         start_date: Union[None, date] = None,
         end_date: Union[None, date] = None,
-    ):
+    ) -> List[GtfsFeed]:
         matching_feeds = []
         for feed in self._feeds.values():
             if feed.matches_date_range(start_date=start_date, end_date=end_date):
@@ -69,3 +69,12 @@ class MbtaGtfsArchive(object):
 
     def get_all_feeds(self):
         return self.get_feeds_for_dates()
+
+    def get_feed_for_date(self, target_date: date):
+        for feed in self._feeds.values():
+            if target_date >= feed.start_date and target_date <= feed.end_date:
+                return feed
+        return None
+
+    def get_latest_feed(self):
+        return self.get_feeds_for_dates()[-1]

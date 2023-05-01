@@ -53,7 +53,7 @@ class Stop(Base):
     stop_url: Mapped[str] = mapped_column(String, nullable=True)
     level_id: Mapped[str] = mapped_column(String, nullable=True)
     location_type: Mapped[TLocationType] = mapped_column(
-        gtfs_enum_type(LocationType), 
+        gtfs_enum_type(LocationType),
         nullable=True,
     )
     parent_station: Mapped[str] = mapped_column(String, index=True)
@@ -64,4 +64,6 @@ class Stop(Base):
     municipality: Mapped[str] = mapped_column(String, nullable=True)
     on_street: Mapped[str] = mapped_column(String, nullable=True)
     at_street: Mapped[str] = mapped_column(String, nullable=True)
-    vehicle_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType), nullable=True)
+    vehicle_type: Mapped[TRouteType] = mapped_column(
+        gtfs_enum_type(RouteType), nullable=True
+    )

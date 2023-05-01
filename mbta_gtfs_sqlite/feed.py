@@ -23,9 +23,6 @@ class GtfsFeed(object):
     start_date: date
     end_date: date
 
-    def __post_init__(self):
-        self.exists_locally = self._check_exists_locally()
-
     def __repr__(self):
         return f"GtfsFeed({self.key})"
 
@@ -33,9 +30,19 @@ class GtfsFeed(object):
     def local_subdirectory(self):
         return path.join(self.archive.local_archive_path, self.key)
 
-    def _check_exists_locally(self):
+    def exists_locally(self):
         for file in FEED_FILES:
             if not path.exists(path.join(self.local_subdirectory, file)):
+                return False
+        return True
+
+    def exists_remotely(self):
+        try:
+            remote_objects = self.archive.s3_bucket.objects.filter(Prefix=self.key)
+        except RuntimeError:
+            return False
+        for file in FEED_FILES:
+            if not any(obj.key.endswith(file) for obj in remote_objects):
                 return False
         return True
 
@@ -43,7 +50,41 @@ class GtfsFeed(object):
         from .build import build_local_feed_entry
 
         build_local_feed_entry(self)
-        self.exists_locally = self._check_exists_locally()
+
+    def download_from_s3(self):
+        if not self.exists_remotely():
+            raise RuntimeError("Feed does not exist remotely")
+        for file in FEED_FILES:
+            self.archive.s3_bucket.download_file(
+                f"{self.key}/{file}", path.join(self.local_subdirectory, file)
+            )
+
+    def upload_to_s3(self):
+        if not self.exists_locally():
+            raise RuntimeError("Feed does not exist locally")
+        for file in FEED_FILES:
+            self.archive.s3_bucket.upload_file(
+                path.join(self.local_subdirectory, file), f"{self.key}/{file}"
+            )
+
+    def download_or_build(self):
+        if self.exists_locally():
+            return
+        if self.exists_remotely():
+            self.download_from_s3()
+            return
+        self.build_locally()
+
+    def create_sqlite_session(self, compact=False):
+        if not self.exists_locally():
+            raise RuntimeError("Feed does not exist locally")
+        from .session import create_sqlalchemy_session
+
+        db_path = path.join(
+            self.local_subdirectory,
+            "gtfs_compact.sqlite3" if compact else "gtfs.sqlite3",
+        )
+        return create_sqlalchemy_session(db_path)
 
     def matches_date_range(
         self,

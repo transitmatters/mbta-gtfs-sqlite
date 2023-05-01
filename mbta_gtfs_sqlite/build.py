@@ -6,7 +6,6 @@ from hashlib import md5
 
 
 import requests
-from tqdm import tqdm
 
 from .reader import GtfsReader
 from .feed import GtfsFeed
@@ -25,19 +24,10 @@ def ensure_subdirectory(feed: GtfsFeed):
 
 def download_feed_zip(feed_url: str, target_path: str):
     response = requests.get(feed_url, stream=True)
-    total_size_in_bytes = int(response.headers.get("content-length", 0))
     block_size = 1024
-    progress_bar = tqdm(
-        total=total_size_in_bytes,
-        unit="iB",
-        unit_scale=True,
-        desc=f"Downloading {feed_url}",
-    )
     with open(target_path, "wb") as file:
         for data in response.iter_content(block_size):
-            progress_bar.update(len(data))
             file.write(data)
-    progress_bar.close()
 
 
 def unzip_feed(zip_path: str, target_path: str):

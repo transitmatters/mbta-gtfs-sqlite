@@ -9,14 +9,12 @@ class GtfsReader:
         def load():
             try:
                 with open(file_path, "r") as file:
-                    print(f"Reading {file_path}...")
                     dict_reader = DictReader(file)
                     for row in dict_reader:
                         yield row
             except FileNotFoundError:
-                print(f"File {file_path} not found. Skipping.")
                 yield from []
-                
+
         return load
 
     def __init__(self, root: str):

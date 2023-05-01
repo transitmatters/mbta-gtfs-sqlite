@@ -38,4 +38,4 @@ class CalendarAttribute(Base):
     )
     rating_start_date: Mapped[date] = mapped_column(Date, nullable=True)
     rating_end_date: Mapped[date] = mapped_column(Date, nullable=True)
-    rating_description: Mapped[str] = mapped_column(String)
+    rating_description: Mapped[str] = mapped_column(String, nullable=True)
