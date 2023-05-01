@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Callable, List, Union, Type, Iterable
+from typing import Dict, Any, Callable, List, Type, Iterable
 
-from .archive import GtfsFeed
+from .build import GtfsFeedDownloadResult
+from .reader import GtfsReader
 from .utils.time import date_from_string, seconds_from_string
 from .utils.decorators import listify
+from .utils.indexes import bucket_by
 from .models.base import Base
 from .models.calendar_attributes import CalendarAttribute
 from .models.calendar_dates import CalendarServiceException
@@ -41,21 +43,6 @@ def transform_row_dict(
     }
 
 
-def bucket_by(
-    items: List[any],
-    key_getter: Union[str, Callable[[Any], str]],
-) -> Dict[str, List[any]]:
-    res = {}
-    if isinstance(key_getter, str):
-        key_getter_as_str = key_getter
-        key_getter = lambda dict: dict[key_getter_as_str]
-    for item in items:
-        key = key_getter(item)
-        res.setdefault(key, [])
-        res[key].append(item)
-    return res
-
-
 @listify
 def get_trip_rows_with_extra_time_fields(
     trip_rows: List[Dict[str, str]],
@@ -74,17 +61,21 @@ def get_trip_rows_with_extra_time_fields(
         }
 
 
-def ingest_feed_info(session: Session, feed: GtfsFeed) -> FeedInfo:
+def ingest_feed_info(
+    session: Session,
+    download: GtfsFeedDownloadResult,
+    reader: GtfsReader,
+) -> FeedInfo:
     num_feed_infos = session.query(FeedInfo).count()
     next_id = 1 + num_feed_infos
-    feed_info_dict_raw = next(feed.reader.read_feed_info())
+    feed_info_dict_raw = next(reader.read_feed_info())
     feed_info_dict = transform_row_dict(
         {
             **feed_info_dict_raw,
             "id": next_id,
             "feed_info_id": next_id,
-            "retrieved_from_url": feed.url,
-            "zip_md5_checksum": feed.zip_md5_checksum,
+            "retrieved_from_url": download.url,
+            "zip_md5_checksum": download.zip_md5_checksum,
         },
         {
             "feed_start_date": date_from_string,
@@ -119,9 +110,12 @@ def ingest_rows(
         session.bulk_insert_mappings(model, mappings)
 
 
-def ingest_gtfs_csv_into_db(session: Session, feed: GtfsFeed):
-    reader = feed.reader
-    feed_info = ingest_feed_info(session, feed)
+def ingest_gtfs_csv_into_db(
+    session: Session,
+    download: GtfsFeedDownloadResult,
+    reader: GtfsReader,
+):
+    feed_info = ingest_feed_info(session, download, reader)
     stop_times = list(reader.read_stop_times())
     trips = list(reader.read_trips())
     trip_rows = get_trip_rows_with_extra_time_fields(trips, stop_times)
