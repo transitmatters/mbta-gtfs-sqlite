@@ -100,6 +100,13 @@ version: str
 url: str
 ```
 
+The non-compact versions of the sqlite files are not well-optimized and can be about 200mb. `GtfsFeed` has a method you can call to tell it that you only want to work with the compact versions (about 40mb).
+
+```py
+use_compact_only(val: bool = True)
+```
+
+
 It has methods to check whether a feed is available locally or remotely:
 
 ```py
@@ -143,7 +150,6 @@ create_sqlite_session(
     compact: bool,
 ) -> sqlalchemy.orm.Session
 ```
-
 # A complete example
 
 ```py

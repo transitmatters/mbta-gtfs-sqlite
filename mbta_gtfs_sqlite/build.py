@@ -71,7 +71,7 @@ def ingest_feed_to_sqlite(
         raise ex
 
 
-def build_local_feed_entry(feed: GtfsFeed):
+def build_local_feed_entry(feed: GtfsFeed, compact_only=False):
     ensure_subdirectory(feed)
     (zip_path, feed_path, db_path, compact_db_path) = (
         path.join(feed.local_subdirectory, entity)
@@ -84,3 +84,5 @@ def build_local_feed_entry(feed: GtfsFeed):
         zip_md5_checksum=get_zip_checksum(zip_path),
     )
     ingest_feed_to_sqlite(feed_path, db_path, compact_db_path, result)
+    if compact_only:
+        remove(db_path)

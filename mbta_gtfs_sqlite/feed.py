@@ -8,10 +8,9 @@ from functools import cached_property
 if TYPE_CHECKING:
     from .archive import MbtaGtfsArchive
 
-FEED_FILES = [
-    "gtfs.sqlite3",
-    "gtfs_compact.sqlite3",
-]
+DB_FILE = "gtfs.sqlite3"
+DB_COMPACT_FILE = "gtfs_compact.sqlite3"
+ALL_DB_FILES = [DB_FILE, DB_COMPACT_FILE]
 
 
 @dataclass
@@ -23,6 +22,9 @@ class GtfsFeed(object):
     start_date: date
     end_date: date
 
+    def __post_init__(self):
+        self.compact_only = False
+
     def __repr__(self):
         return f"GtfsFeed({self.key})"
 
@@ -30,8 +32,14 @@ class GtfsFeed(object):
     def local_subdirectory(self):
         return path.join(self.archive.local_archive_path, self.key)
 
+    def required_feed_files(self):
+        return ALL_DB_FILES if not self.compact_only else [DB_COMPACT_FILE]
+
+    def use_compact_only(self, enabled: bool = True):
+        self.compact_only = enabled
+
     def exists_locally(self):
-        for file in FEED_FILES:
+        for file in self.required_feed_files():
             if not path.exists(path.join(self.local_subdirectory, file)):
                 return False
         return True
@@ -41,7 +49,7 @@ class GtfsFeed(object):
             remote_objects = self.archive.s3_bucket.objects.filter(Prefix=self.key)
         except RuntimeError:
             return False
-        for file in FEED_FILES:
+        for file in self.required_feed_files():
             if not any(obj.key.endswith(file) for obj in remote_objects):
                 return False
         return True
@@ -49,12 +57,12 @@ class GtfsFeed(object):
     def build_locally(self):
         from .build import build_local_feed_entry
 
-        build_local_feed_entry(self)
+        build_local_feed_entry(self, self.compact_only)
 
     def download_from_s3(self):
         if not self.exists_remotely():
             raise RuntimeError("Feed does not exist remotely")
-        for file in FEED_FILES:
+        for file in self.required_feed_files():
             self.archive.s3_bucket.download_file(
                 f"{self.key}/{file}", path.join(self.local_subdirectory, file)
             )
@@ -62,7 +70,7 @@ class GtfsFeed(object):
     def upload_to_s3(self):
         if not self.exists_locally():
             raise RuntimeError("Feed does not exist locally")
-        for file in FEED_FILES:
+        for file in self.required_feed_files():
             self.archive.s3_bucket.upload_file(
                 path.join(self.local_subdirectory, file), f"{self.key}/{file}"
             )
