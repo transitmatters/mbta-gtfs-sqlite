@@ -68,7 +68,7 @@ def ingest_feed_to_sqlite(
             remove(compact_db_path)
         except FileNotFoundError:
             pass
-        raise Exception("Failed to ingest feed") from ex
+        raise ex
 
 
 def build_local_feed_entry(feed: GtfsFeed):

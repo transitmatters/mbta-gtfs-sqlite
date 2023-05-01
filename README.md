@@ -38,10 +38,10 @@ If you provide an S3 bucket, this path structure will be mirrored remotely. Howe
 The `MbtaGtfsArchive` class serves as the entrypoint to the MBTA's archive:
 
 ```py
->> from mbta_gtfs_sqlite import MbtaGtfsArchive
->> archive = MbtaGtfsArchive("~/gtfs-feeds")
->> archive.get_all_feeds()
-<< [GtfsFeed(20090313), GtfsFeed(20090403), ...]
+>>> from mbta_gtfs_sqlite import MbtaGtfsArchive
+>>> archive = MbtaGtfsArchive("~/gtfs-feeds")
+>>> archive.get_all_feeds()
+[GtfsFeed(20090313), GtfsFeed(20090403), ...]
 ```
 
 Its methods all return `GtfsFeed` objects (explained below). These have a `key`, which is a string  of the feed's effective start date (like `20210403`).
