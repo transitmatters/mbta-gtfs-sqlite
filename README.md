@@ -150,6 +150,14 @@ create_sqlite_session(
     compact: bool,
 ) -> sqlalchemy.orm.Session
 ```
+
+When you're done with a feed you can:
+
+```py
+# Delete the feed from your local index
+delete_locally()
+```
+
 # A complete example
 
 ```py

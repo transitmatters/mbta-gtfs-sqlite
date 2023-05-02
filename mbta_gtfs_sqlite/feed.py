@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Union
-from os import path, mkdir
+from os import path, mkdir, remove, rmdir
 from datetime import date
 from dataclasses import dataclass
 from functools import cached_property
@@ -90,6 +90,19 @@ class GtfsFeed(object):
             self.download_from_s3()
             return
         self.build_locally()
+
+    def delete_locally(self):
+        if not self.exists_locally():
+            raise RuntimeError("Feed does not exist locally")
+        for file in self.required_feed_files():
+            file_path = path.join(self.local_subdirectory, file)
+            if path.exists(file_path):
+                remove(file_path)
+        # Delete self.local_subdirectory if empty
+        try:
+            rmdir(self.local_subdirectory)
+        except OSError:
+            pass
 
     def create_sqlite_session(self, compact=False):
         if not self.exists_locally():
