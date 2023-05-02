@@ -9,9 +9,9 @@ A Python package to simplify working with the MBTA's archive of historical and c
 
 This tool can help you:
 
-- Maintain a local index of the MBTA's GTFS feeds in sqlite format
+- Maintain a local archive of the MBTA's GTFS feeds in sqlite format
 - Query feeds using an ORM schema built on [SQLAlchemy](https://www.sqlalchemy.org/)
-- Build a remote mirror of your index on S3
+- Build a remote mirror of your archive on S3
 
 ## Structure of the archive
 
@@ -154,7 +154,7 @@ create_sqlite_session(
 When you're done with a feed you can:
 
 ```py
-# Delete the feed from your local index
+# Delete the feed from your local archive
 delete_locally()
 ```
 
