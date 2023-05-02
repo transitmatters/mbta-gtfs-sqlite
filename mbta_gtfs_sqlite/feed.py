@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Union
-from os import path
+from os import path, mkdir
 from datetime import date
 from dataclasses import dataclass
 from functools import cached_property
@@ -38,6 +38,12 @@ class GtfsFeed(object):
     def use_compact_only(self, enabled: bool = True):
         self.compact_only = enabled
 
+    def ensure_subdirectory(self):
+        if not path.exists(self.archive.local_archive_path):
+            mkdir(self.archive.local_archive_path)
+        if not path.exists(self.local_subdirectory):
+            mkdir(self.local_subdirectory)
+
     def exists_locally(self):
         for file in self.required_feed_files():
             if not path.exists(path.join(self.local_subdirectory, file)):
@@ -57,11 +63,13 @@ class GtfsFeed(object):
     def build_locally(self):
         from .build import build_local_feed_entry
 
+        self.ensure_subdirectory()
         build_local_feed_entry(self, self.compact_only)
 
     def download_from_s3(self):
         if not self.exists_remotely():
             raise RuntimeError("Feed does not exist remotely")
+        self.ensure_subdirectory()
         for file in self.required_feed_files():
             self.archive.s3_bucket.download_file(
                 f"{self.key}/{file}", path.join(self.local_subdirectory, file)

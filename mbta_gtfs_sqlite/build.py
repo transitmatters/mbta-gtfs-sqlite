@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from os import path, mkdir, remove
+from os import path, remove
 from shutil import copy
 from zipfile import ZipFile
 from hashlib import md5
@@ -15,11 +15,6 @@ from .feed import GtfsFeed
 class GtfsFeedDownloadResult(object):
     url: str
     zip_md5_checksum: str
-
-
-def ensure_subdirectory(feed: GtfsFeed):
-    if not path.exists(feed.local_subdirectory):
-        mkdir(feed.local_subdirectory)
 
 
 def download_feed_zip(feed_url: str, target_path: str):
@@ -72,7 +67,6 @@ def ingest_feed_to_sqlite(
 
 
 def build_local_feed_entry(feed: GtfsFeed, compact_only=False):
-    ensure_subdirectory(feed)
     (zip_path, feed_path, db_path, compact_db_path) = (
         path.join(feed.local_subdirectory, entity)
         for entity in ("data.zip", "feed", "gtfs.sqlite3", "gtfs_compact.sqlite3")
