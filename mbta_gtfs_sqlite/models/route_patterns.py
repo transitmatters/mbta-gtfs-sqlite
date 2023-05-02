@@ -9,6 +9,7 @@ from ..utils.enum import gtfs_enum_type
 
 
 class RoutePatternTypicality(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NOT_DEFINED = "0"
     TYPICAL = "1"
     DEVIATION = "2"

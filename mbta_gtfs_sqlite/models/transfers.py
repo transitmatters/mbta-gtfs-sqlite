@@ -9,6 +9,7 @@ from ..utils.enum import gtfs_enum_type
 
 
 class TransferType(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     RECOMMENDED = "0"
     TIMED = "1"
     REQUIRES_MINIMUM_TIME = "2"
@@ -28,6 +29,7 @@ TTranferType = Literal[
 
 
 class WheelchairAccessibility(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NO_INFORMATION = "0"
     ACCESSIBLE = "1"
     NOT_ACCESSIBLE = "2"

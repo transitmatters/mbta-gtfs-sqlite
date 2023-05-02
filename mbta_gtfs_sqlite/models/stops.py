@@ -10,6 +10,7 @@ from ..utils.enum import gtfs_enum_type
 
 
 class LocationType(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     STOP = "0"
     STATION = "1"
     ENTRANCE_EXIT = "2"
@@ -27,6 +28,7 @@ TLocationType = Literal[
 
 
 class WheelchairBoardingType(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NO_INFORMATION = "0"
     ACCESSIBLE = "1"
     NOT_ACCESSIBLE = "2"

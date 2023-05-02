@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mbta-gtfs-sqlite"
-version = "0.9.4"
+version = "0.9.5"
 description = "Query the MBTA's static GTFS feeds using sqlite"
 authors = ["Ian Reynolds <ireynolds@transitmatters.info>"]
 packages = [{include = "mbta_gtfs_sqlite"}]

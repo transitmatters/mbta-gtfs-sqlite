@@ -10,6 +10,7 @@ from ..utils.enum import gtfs_enum_type
 
 
 class WheelchairAccessibility(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NO_INFORMATION = "0"
     ACCESSIBLE = "1"
     NOT_ACCESSIBLE = "2"
@@ -23,6 +24,7 @@ TWheelchairAccessibility = Literal[
 
 
 class BikesAllowed(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NO_INFORMATION = "0"
     ALLOWED = "1"
     NOT_ALLOWED = "2"

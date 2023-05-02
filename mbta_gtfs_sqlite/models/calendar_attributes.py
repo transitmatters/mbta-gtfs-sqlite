@@ -10,6 +10,7 @@ from ..utils.enum import gtfs_enum_type
 
 
 class ServiceScheduleTypicality(Enum):
+    NO_VALUE = ""  # Not in GTFS but sometimes seen
     NOT_DEFINED = "0"
     MINOR_MODIFICATIONS = "1"
     EXTRA_SERVICE = "2"
