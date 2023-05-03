@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from os import path, remove
-from shutil import copy
+from os import path, remove, listdir
+from shutil import copy, rmtree
 from zipfile import ZipFile
 from hashlib import md5
 
@@ -28,6 +28,13 @@ def download_feed_zip(feed_url: str, target_path: str):
 def unzip_feed(zip_path: str, target_path: str):
     zf = ZipFile(zip_path)
     zf.extractall(target_path)
+    items = listdir(target_path)
+    if len(items) == 1:
+        inner_dir = items[0]
+        inner_dir_path = path.join(target_path, inner_dir)
+        for file in listdir(inner_dir_path):
+            copy(path.join(inner_dir_path, file), target_path)
+        rmtree(inner_dir_path)
 
 
 def get_zip_checksum(zip_path: str) -> str:
