@@ -58,6 +58,7 @@ def get_trip_rows_with_extra_time_fields(
             **trip_row,
             "start_time": stop_times_for_trip[0]["arrival_time"],
             "end_time": stop_times_for_trip[-1]["arrival_time"],
+            "stop_count": len(stop_times_for_trip),
         }
 
 

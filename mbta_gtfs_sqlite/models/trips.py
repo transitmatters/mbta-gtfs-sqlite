@@ -55,7 +55,8 @@ class Trip(Base):
         gtfs_enum_type(BikesAllowed),
         nullable=True,
     )
-    # start_time and end_time are not part of GTFS but they're useful information to have
+    # These are not part of GTFS but they're useful information to have
     # in smaller versions of the database without StopTimes
     start_time: Mapped[int] = mapped_column(Integer)
     end_time: Mapped[int] = mapped_column(Integer)
+    stop_count: Mapped[int] = mapped_column(Integer)
