@@ -31,7 +31,7 @@ my-feeds/
 The subdirectory names are `keys` — string representation of feed start dates. Inside you'll find the following items:
 
 - `gtfs.sqlite3`: a full sqlite representation of the feed
-- `gtfs_compact.sqlite3`: a smaller sqlite representation of the feed with the large `StopTimes` table removed.
+- `gtfs_compact.sqlite3`: a smaller sqlite representation of the feed with the large `StopTime` and `ShapePoint` tables removed.
 - `data.zip`: the zipped version of the raw GTFS feed, straight from the MBTA
 - `feed`: an unzipped version of the raw GTFS feed
 
@@ -100,7 +100,7 @@ version: str
 url: str
 ```
 
-The non-compact versions of the sqlite files are not well-optimized and can be about 200mb. `GtfsFeed` has a method you can call to tell it that you only want to work with the compact versions (about 40mb).
+The non-compact versions of the sqlite files are not well-optimized and can be about 200mb. `GtfsFeed` has a method you can call to tell it that you only want to work with the compact versions (about 10mb).
 
 ```py
 use_compact_only(val: bool = True)
@@ -182,7 +182,7 @@ latest_feed = archive.get_latest_feed()
 latest_feed.download_or_build()
 assert latest_feed.exists_locally()
 
-session = latest_feed.create_sqlite_session
+session = latest_feed.create_sqlite_session()
 all_routes = session.query(Route).all()
 ```
 

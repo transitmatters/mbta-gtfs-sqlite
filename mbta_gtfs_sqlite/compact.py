@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from .models.shapes import ShapePoint
 from .models.stop_times import StopTime
 
 
@@ -12,4 +13,5 @@ def vacuum(session: Session):
 
 def make_compact_db(session: Session):
     session.query(StopTime).delete()
+    session.query(ShapePoint).delete()
     vacuum(session)

@@ -54,26 +54,42 @@ def ingest_feed_to_sqlite(
     result: GtfsFeedDownloadResult,
 ):
     from .ingest import ingest_gtfs_csv_into_db
-    from .compact import make_compact_db
     from .session import create_sqlalchemy_session
 
     try:
         reader = GtfsReader(feed_path)
         session = create_sqlalchemy_session(db_path)
         ingest_gtfs_csv_into_db(session, result, reader)
-        copy(db_path, compact_db_path)
-        compact_session = create_sqlalchemy_session(compact_db_path)
-        make_compact_db(compact_session)
     except Exception as ex:
         try:
             remove(db_path)
+        except FileNotFoundError:
+            pass
+        raise ex
+
+
+def compress_sqlite_feed(db_path: str, compact_db_path: str):
+    from .compact import make_compact_db
+    from .session import create_sqlalchemy_session
+
+    try:
+        copy(db_path, compact_db_path)
+        session = create_sqlalchemy_session(compact_db_path)
+        make_compact_db(session)
+    except Exception as ex:
+        try:
             remove(compact_db_path)
         except FileNotFoundError:
             pass
         raise ex
 
 
-def build_local_feed_entry(feed: GtfsFeed, compact_only=False):
+def build_local_feed_entry(
+    feed: GtfsFeed,
+    compact_only=False,
+    rebuild_db=True,
+    rebuild_compact_db=True,
+):
     (zip_path, feed_path, db_path, compact_db_path) = (
         path.join(feed.local_subdirectory, entity)
         for entity in ("data.zip", "feed", "gtfs.sqlite3", "gtfs_compact.sqlite3")
@@ -84,6 +100,9 @@ def build_local_feed_entry(feed: GtfsFeed, compact_only=False):
         url=feed.url,
         zip_md5_checksum=get_zip_checksum(zip_path),
     )
-    ingest_feed_to_sqlite(feed_path, db_path, compact_db_path, result)
+    if not path.exists(db_path) or rebuild_db:
+        ingest_feed_to_sqlite(feed_path, db_path, compact_db_path, result)
+    if not path.exists(compact_db_path) or rebuild_compact_db:
+        compress_sqlite_feed(db_path, compact_db_path)
     if compact_only:
         remove(db_path)

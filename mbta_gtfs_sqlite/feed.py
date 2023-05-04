@@ -60,11 +60,16 @@ class GtfsFeed(object):
                 return False
         return True
 
-    def build_locally(self):
+    def build_locally(self, rebuild_compact_db: bool = True, rebuild_db: bool = True):
         from .build import build_local_feed_entry
 
         self.ensure_subdirectory()
-        build_local_feed_entry(self, self.compact_only)
+        build_local_feed_entry(
+            self,
+            compact_only=self.compact_only,
+            rebuild_compact_db=rebuild_compact_db,
+            rebuild_db=rebuild_db,
+        )
 
     def download_from_s3(self):
         if not self.exists_remotely():
