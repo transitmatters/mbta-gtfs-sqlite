@@ -109,7 +109,9 @@ class GtfsFeed(object):
         except OSError:
             pass
 
-    def create_sqlite_session(self, compact=False):
+    def create_sqlite_session(self, compact=None):
+        if compact is None:
+            compact = self.compact_only
         if not self.exists_locally():
             raise RuntimeError("Feed does not exist locally")
         from .session import create_sqlalchemy_session
