@@ -74,7 +74,7 @@ def ingest_feed_info(
     feed_info_dict_raw = next(reader.read_feed_info())
     feed_info_dict = transform_row_dict(
         {
-            **transform_row_dict(feed_info_dict_raw, {}, FeedInfo),
+            **feed_info_dict_raw,
             "id": next_id,
             "feed_info_id": next_id,
             "retrieved_from_url": download.url,
@@ -84,6 +84,7 @@ def ingest_feed_info(
             "feed_start_date": date_from_string,
             "feed_end_date": date_from_string,
         },
+        FeedInfo,
     )
     feed_info = FeedInfo(**feed_info_dict)
     session.add(feed_info)
