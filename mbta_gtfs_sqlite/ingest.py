@@ -36,10 +36,12 @@ def nullable(transform: RowTransform) -> RowTransform:
 def transform_row_dict(
     row_dict: Dict[str, str],
     transforms: RowTransforms,
+    model: Type[Base],
 ) -> Dict[str, Any]:
     return {
         key: (transforms[key](value) if transforms.get(key) else value)
         for key, value in row_dict.items()
+        if key in model.__table__.columns
     }
 
 
@@ -62,15 +64,6 @@ def get_trip_rows_with_extra_time_fields(
         }
 
 
-def filter_raw_rows_for_model(
-    raw_rows: Dict[str, str],
-    model: Type[Base],
-) -> Dict[str, str]:
-    return {
-        key: value for key, value in raw_rows.items() if key in model.__table__.columns
-    }
-
-
 def ingest_feed_info(
     session: Session,
     download: GtfsFeedDownloadResult,
@@ -81,7 +74,7 @@ def ingest_feed_info(
     feed_info_dict_raw = next(reader.read_feed_info())
     feed_info_dict = transform_row_dict(
         {
-            **filter_raw_rows_for_model(feed_info_dict_raw),
+            **transform_row_dict(feed_info_dict_raw, {}, FeedInfo),
             "id": next_id,
             "feed_info_id": next_id,
             "retrieved_from_url": download.url,
@@ -108,7 +101,7 @@ def ingest_rows(
 ):
     mappings = [
         {
-            **transform_row_dict(row, transforms),
+            **transform_row_dict(row, transforms, model),
             "feed_info_id": feed_info.id,
         }
         for row in rows
