@@ -62,6 +62,15 @@ def get_trip_rows_with_extra_time_fields(
         }
 
 
+def filter_raw_rows_for_model(
+    raw_rows: Dict[str, str],
+    model: Type[Base],
+) -> Dict[str, str]:
+    return {
+        key: value for key, value in raw_rows.items() if key in model.__table__.columns
+    }
+
+
 def ingest_feed_info(
     session: Session,
     download: GtfsFeedDownloadResult,
@@ -72,7 +81,7 @@ def ingest_feed_info(
     feed_info_dict_raw = next(reader.read_feed_info())
     feed_info_dict = transform_row_dict(
         {
-            **feed_info_dict_raw,
+            **filter_raw_rows_for_model(feed_info_dict_raw),
             "id": next_id,
             "feed_info_id": next_id,
             "retrieved_from_url": download.url,
