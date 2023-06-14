@@ -17,6 +17,7 @@ class ServiceScheduleTypicality(Enum):
     REDUCED_TO_WEEKEND_SERVICE = "3"
     MAJOR_PLANNED_DISRUPTION = "4"
     MAJOR_ATYPICAL_REDUCTIONS = "5"
+    NOT_ACTIVELY_SCHEDULED = "6"
 
 
 TServiceScheduleTypicality = Literal[
@@ -26,6 +27,7 @@ TServiceScheduleTypicality = Literal[
     ServiceScheduleTypicality.REDUCED_TO_WEEKEND_SERVICE,
     ServiceScheduleTypicality.MAJOR_PLANNED_DISRUPTION,
     ServiceScheduleTypicality.MAJOR_ATYPICAL_REDUCTIONS,
+    ServiceScheduleTypicality.NOT_ACTIVELY_SCHEDULED,
 ]
 
 
