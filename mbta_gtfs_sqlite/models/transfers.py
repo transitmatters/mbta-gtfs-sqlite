@@ -51,7 +51,8 @@ class Transfer(Base):
     min_wheelchair_time: Mapped[int] = mapped_column(Integer, nullable=True)
     suggested_buffer_time: Mapped[int] = mapped_column(Integer, nullable=True)
     wheelchair_transfer: Mapped[TWheelchairAccessibility] = mapped_column(
-        gtfs_enum_type(WheelchairAccessibility)
+        gtfs_enum_type(WheelchairAccessibility),
+        nullable=True,
     )
     from_trip_id: Mapped[str] = mapped_column(String, nullable=True)
     to_trip_id: Mapped[str] = mapped_column(String, nullable=True)

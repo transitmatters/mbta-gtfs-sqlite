@@ -47,9 +47,13 @@ class Trip(Base):
     block_id: Mapped[str] = mapped_column(String)
     shape_id: Mapped[str] = mapped_column(String)
     wheelchair_accessible: Mapped[TWheelchairAccessibility] = mapped_column(
-        gtfs_enum_type(WheelchairAccessibility)
+        gtfs_enum_type(WheelchairAccessibility),
+        nullable=True,
     )
-    trip_route_type: Mapped[TRouteType] = mapped_column(gtfs_enum_type(RouteType))
+    trip_route_type: Mapped[TRouteType] = mapped_column(
+        gtfs_enum_type(RouteType),
+        nullable=True,
+    )
     route_pattern_id: Mapped[str] = mapped_column(String, nullable=True)
     bikes_allowed: Mapped[TBikesAllowed] = mapped_column(
         gtfs_enum_type(BikesAllowed),
