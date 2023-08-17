@@ -15,6 +15,7 @@ class RoutePatternTypicality(Enum):
     DEVIATION = "2"
     HIGHLY_ATYPICAL = "3"
     DIVERSION = "4"
+    CANONICAL = "5"
 
 
 TRoutePatternTypicality = Literal[
@@ -23,6 +24,7 @@ TRoutePatternTypicality = Literal[
     RoutePatternTypicality.DEVIATION,
     RoutePatternTypicality.HIGHLY_ATYPICAL,
     RoutePatternTypicality.DIVERSION,
+    RoutePatternTypicality.CANONICAL,
 ]
 
 
