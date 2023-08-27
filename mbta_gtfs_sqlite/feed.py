@@ -60,7 +60,12 @@ class GtfsFeed(object):
                 return False
         return True
 
-    def build_locally(self, rebuild_compact_db: bool = True, rebuild_db: bool = True):
+    def build_locally(
+        self,
+        rebuild_compact_db: bool = True,
+        rebuild_db: bool = True,
+        ingest_batch_size: Union[None, int] = None,
+    ):
         from .build import build_local_feed_entry
 
         self.ensure_subdirectory()
@@ -69,6 +74,7 @@ class GtfsFeed(object):
             compact_only=self.compact_only,
             rebuild_compact_db=rebuild_compact_db,
             rebuild_db=rebuild_db,
+            ingest_batch_size=ingest_batch_size,
         )
 
     def download_from_s3(self):
