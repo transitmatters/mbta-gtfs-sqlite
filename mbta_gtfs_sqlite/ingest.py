@@ -98,8 +98,8 @@ def ingest_rows(
     model: Type[Base],
     feed_info: FeedInfo,
     rows: Iterable[Dict[str, str]],
+    batch_size: Union[None, int],
     transforms: RowTransforms = {},
-    batch_size: Union[None, int] = None,
 ):
     if batch_size:
         batches = ichunked(rows, batch_size)
