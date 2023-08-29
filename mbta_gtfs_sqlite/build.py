@@ -3,6 +3,7 @@ from os import path, remove, listdir
 from shutil import copy, rmtree
 from zipfile import ZipFile
 from hashlib import md5
+from typing import Union
 
 
 import requests
@@ -50,8 +51,8 @@ def get_zip_checksum(zip_path: str) -> str:
 def ingest_feed_to_sqlite(
     feed_path: str,
     db_path: str,
-    compact_db_path: str,
     result: GtfsFeedDownloadResult,
+    batch_size: Union[None, int] = None,
 ):
     from .ingest import ingest_gtfs_csv_into_db
     from .session import create_sqlalchemy_session
@@ -59,7 +60,7 @@ def ingest_feed_to_sqlite(
     try:
         reader = GtfsReader(feed_path)
         session = create_sqlalchemy_session(db_path)
-        ingest_gtfs_csv_into_db(session, result, reader)
+        ingest_gtfs_csv_into_db(session, result, reader, batch_size)
     except Exception as ex:
         try:
             remove(db_path)
@@ -89,6 +90,7 @@ def build_local_feed_entry(
     compact_only=False,
     rebuild_db=True,
     rebuild_compact_db=True,
+    ingest_batch_size: Union[None, int] = None,
 ):
     (zip_path, feed_path, db_path, compact_db_path) = (
         path.join(feed.local_subdirectory, entity)
@@ -101,7 +103,7 @@ def build_local_feed_entry(
         zip_md5_checksum=get_zip_checksum(zip_path),
     )
     if not path.exists(db_path) or rebuild_db:
-        ingest_feed_to_sqlite(feed_path, db_path, compact_db_path, result)
+        ingest_feed_to_sqlite(feed_path, db_path, result, ingest_batch_size)
     if not path.exists(compact_db_path) or rebuild_compact_db:
         compress_sqlite_feed(db_path, compact_db_path)
     if compact_only:

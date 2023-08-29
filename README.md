@@ -121,7 +121,15 @@ To get a copy of the feed you can use these methods:
 
 ```py
 # Download a zip from the MBTA and create sqlite databases locally
-build_locally()
+build_locally(
+    # Rebuild the db even if it already exists locally
+    rebuild_db: bool = True,
+    # Rebuild the compact db even if it already exists locally
+    rebuild_compact_db: bool = True, 
+    # Maximum number of rows to ingest at once
+    # Use this to avoid using too much memory when building the db
+    ingest_batch_size: Union[None, int] = 300000,
+)
 
 # Download a version of this feed from s3_bucket
 # Throws a RuntimeException if exists_remotely() is false.

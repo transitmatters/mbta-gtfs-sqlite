@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 DB_FILE = "gtfs.sqlite3"
 DB_COMPACT_FILE = "gtfs_compact.sqlite3"
 ALL_DB_FILES = [DB_FILE, DB_COMPACT_FILE]
-
+DEFAULT_INGEST_BATCH_SIZE = 300000
 
 @dataclass
 class GtfsFeed(object):
@@ -60,15 +60,21 @@ class GtfsFeed(object):
                 return False
         return True
 
-    def build_locally(self, rebuild_compact_db: bool = True, rebuild_db: bool = True):
+    def build_locally(
+        self,
+        rebuild_db: bool = True,
+        rebuild_compact_db: bool = True,
+        ingest_batch_size: Union[None, int] = DEFAULT_INGEST_BATCH_SIZE,
+    ):
         from .build import build_local_feed_entry
 
         self.ensure_subdirectory()
         build_local_feed_entry(
             self,
             compact_only=self.compact_only,
-            rebuild_compact_db=rebuild_compact_db,
             rebuild_db=rebuild_db,
+            rebuild_compact_db=rebuild_compact_db,
+            ingest_batch_size=ingest_batch_size,
         )
 
     def download_from_s3(self):
@@ -103,7 +109,6 @@ class GtfsFeed(object):
             file_path = path.join(self.local_subdirectory, file)
             if path.exists(file_path):
                 remove(file_path)
-        # Delete self.local_subdirectory if empty
         try:
             rmdir(self.local_subdirectory)
         except OSError:
