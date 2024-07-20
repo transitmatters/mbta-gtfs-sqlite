@@ -1,4 +1,4 @@
-# `mbta-gtfs-sqlite`
+# mbta-gtfs-sqlite
 
 ```
 pip install mbta-gtfs-sqlite
