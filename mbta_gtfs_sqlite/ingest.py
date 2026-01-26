@@ -7,6 +7,7 @@ from .reader import GtfsReader
 from .utils.time import date_from_string, seconds_from_string
 from .utils.decorators import listify
 from .utils.indexes import bucket_by
+from .models.agency import Agency
 from .models.base import Base
 from .models.calendar_attributes import CalendarAttribute
 from .models.calendar_dates import CalendarServiceException
@@ -130,6 +131,13 @@ def ingest_gtfs_csv_into_db(
     batch_size: Union[None, int] = None,
 ):
     feed_info = ingest_feed_info(session, download, reader)
+    ingest_rows(
+        session=session,
+        model=Agency,
+        feed_info=feed_info,
+        rows=reader.read_agency(),
+        batch_size=batch_size,
+    )
     ingest_rows(
         session=session,
         model=CalendarService,
