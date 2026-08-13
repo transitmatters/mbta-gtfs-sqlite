@@ -13,6 +13,7 @@ DB_COMPACT_FILE = "gtfs_compact.sqlite3"
 ALL_DB_FILES = [DB_FILE, DB_COMPACT_FILE]
 DEFAULT_INGEST_BATCH_SIZE = 300000
 
+
 @dataclass
 class GtfsFeed(object):
     archive: "MbtaGtfsArchive"

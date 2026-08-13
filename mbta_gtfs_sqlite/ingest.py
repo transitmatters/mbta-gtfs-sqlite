@@ -1,12 +1,11 @@
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Callable, List, Type, Iterable, Union
+from typing import Dict, Any, Callable, Type, Iterable, Union
 from more_itertools import ichunked
 
 from .build import GtfsFeedDownloadResult
 from .reader import GtfsReader
 from .utils.time import date_from_string, seconds_from_string
-from .utils.decorators import listify
-from .utils.indexes import bucket_by
+from .models.agency import Agency
 from .models.base import Base
 from .models.calendar_attributes import CalendarAttribute
 from .models.calendar_dates import CalendarServiceException
@@ -46,23 +45,32 @@ def transform_row_dict(
     }
 
 
-@listify
-def get_trip_rows_with_extra_time_fields(
-    trip_rows: List[Dict[str, str]],
-    stop_time_rows: List[Dict[str, str]],
-) -> List[Dict[str, str]]:
-    stop_times_by_trip_id = bucket_by(stop_time_rows, "trip_id")
-    for trip_row in trip_rows:
-        stop_times_for_trip = sorted(
-            stop_times_by_trip_id[trip_row["trip_id"]],
-            key=lambda stop_time: int(stop_time["stop_sequence"]),
-        )
-        yield {
-            **trip_row,
-            "start_time": stop_times_for_trip[0]["arrival_time"],
-            "end_time": stop_times_for_trip[-1]["arrival_time"],
-            "stop_count": len(stop_times_for_trip),
-        }
+def get_trip_extra_fields_by_trip_id(
+    stop_time_rows: Iterable[Dict[str, str]],
+) -> Dict[str, Dict[str, Any]]:
+    extra_fields_by_trip_id: Dict[str, Dict[str, Any]] = {}
+    for stop_time_row in stop_time_rows:
+        trip_id = stop_time_row["trip_id"]
+        stop_sequence = int(stop_time_row["stop_sequence"])
+        arrival_time = stop_time_row["arrival_time"]
+        extra_fields = extra_fields_by_trip_id.get(trip_id)
+        if extra_fields is None:
+            extra_fields_by_trip_id[trip_id] = {
+                "min_stop_sequence": stop_sequence,
+                "start_time": arrival_time,
+                "max_stop_sequence": stop_sequence,
+                "end_time": arrival_time,
+                "stop_count": 1,
+            }
+            continue
+        extra_fields["stop_count"] += 1
+        if stop_sequence < extra_fields["min_stop_sequence"]:
+            extra_fields["min_stop_sequence"] = stop_sequence
+            extra_fields["start_time"] = arrival_time
+        if stop_sequence > extra_fields["max_stop_sequence"]:
+            extra_fields["max_stop_sequence"] = stop_sequence
+            extra_fields["end_time"] = arrival_time
+    return extra_fields_by_trip_id
 
 
 def ingest_feed_info(
@@ -116,11 +124,16 @@ def ingest_rows(
         session.bulk_insert_mappings(model, mappings)
 
 
-def get_augmented_trip_rows(reader: GtfsReader):
-    stop_times = list(reader.read_stop_times())
-    trips = list(reader.read_trips())
-    trip_rows = get_trip_rows_with_extra_time_fields(trips, stop_times)
-    return trip_rows
+def get_augmented_trip_rows(reader: GtfsReader) -> Iterable[Dict[str, str]]:
+    extra_fields_by_trip_id = get_trip_extra_fields_by_trip_id(reader.read_stop_times())
+    for trip_row in reader.read_trips():
+        extra_fields = extra_fields_by_trip_id[trip_row["trip_id"]]
+        yield {
+            **trip_row,
+            "start_time": extra_fields["start_time"],
+            "end_time": extra_fields["end_time"],
+            "stop_count": extra_fields["stop_count"],
+        }
 
 
 def ingest_gtfs_csv_into_db(
@@ -130,6 +143,13 @@ def ingest_gtfs_csv_into_db(
     batch_size: Union[None, int] = None,
 ):
     feed_info = ingest_feed_info(session, download, reader)
+    ingest_rows(
+        session=session,
+        model=Agency,
+        feed_info=feed_info,
+        rows=reader.read_agency(),
+        batch_size=batch_size,
+    )
     ingest_rows(
         session=session,
         model=CalendarService,

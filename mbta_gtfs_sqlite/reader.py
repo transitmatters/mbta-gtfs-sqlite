@@ -19,6 +19,7 @@ class GtfsReader:
 
     def __init__(self, root: str):
         self.root = root
+        self.read_agency = self._reader_by_file_name("agency")
         self.read_calendar = self._reader_by_file_name("calendar")
         self.read_calendar_attributes = self._reader_by_file_name("calendar_attributes")
         self.read_calendar_dates = self._reader_by_file_name("calendar_dates")
