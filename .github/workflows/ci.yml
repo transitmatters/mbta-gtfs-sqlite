@@ -8,18 +8,29 @@ on:
 jobs:
   install-and-lint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - uses: actions/checkout@v7
 
       - name: Install Poetry
-        run: pip install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+
+      - name: Check that poetry.lock matches pyproject.toml
+        run: poetry check --lock
 
       - name: Install dependencies
         run: poetry install
 
       - name: Check formatting with black
         run: poetry run black --check .
+
+      - name: Import the package
+        run: poetry run python -c "import mbta_gtfs_sqlite"
