@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [pyproject.toml]
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # PyPI trusted publishing
+      contents: write # push the tag and create the release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Read version from pyproject.toml
+        id: version
+        run: echo "version=$(poetry version --short)" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already on PyPI
+        id: check
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "https://pypi.org/pypi/mbta-gtfs-sqlite/$version/json")
+          case "$http_code" in
+            200) echo "PyPI already has $version; nothing to do."
+                 echo "publish=false" >> "$GITHUB_OUTPUT" ;;
+            404) echo "$version is not on PyPI; will publish."
+                 echo "publish=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "Unexpected response $http_code from PyPI" >&2; exit 1 ;;
+          esac
+
+      - name: Build
+        if: steps.check.outputs.publish == 'true'
+        run: poetry build
+
+      - name: Publish to PyPI
+        if: steps.check.outputs.publish == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Tag and create GitHub release
+        if: steps.check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" dist/* \
+            --title "${{ steps.version.outputs.version }}" \
+            --generate-notes
