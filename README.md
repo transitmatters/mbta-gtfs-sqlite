@@ -4,6 +4,8 @@
 pip install mbta-gtfs-sqlite
 ```
 
+Requires Python 3.11 or newer.
+
 A Python package to simplify working with the MBTA's archive of historical and current GTFS feeds. The MBTA provides this as a [CSV index](https://cdn.mbta.com/archive/archived_feeds.txt) of zipfile URLs which in turn contain static GTFS bundles — see the documentation on [GTFS in general](https://gtfs.org/schedule/reference/) and the [MBTA's own flavor](https://github.com/mbta/gtfs-documentation).
 
 
