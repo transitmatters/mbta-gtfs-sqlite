@@ -1,4 +1,3 @@
-from typing import Callable
 from types import GeneratorType
 from functools import wraps
 
