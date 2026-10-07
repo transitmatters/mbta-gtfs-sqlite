@@ -168,7 +168,7 @@ When you're done with a feed you can:
 delete_locally()
 ```
 
-# A complete example
+## A complete example
 
 ```py
 import boto3
@@ -197,3 +197,38 @@ all_routes = session.query(Route).all()
 ```
 
 Please refer to the `models/` subdirectory for the database schema, and the [SQLAlchemy documentation](https://www.sqlalchemy.org/) for more info on how to query it.
+
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/) to manage dependencies and [Ruff](https://docs.astral.sh/ruff/) for linting and formatting.
+
+1. [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
+2. Install the package and its development dependencies into a local `.venv`:
+
+   ```
+   uv sync
+   ```
+
+   On Windows, `memray` (used by `scripts/benchmark_ingest.py` for memory profiling) is skipped because it only supports Linux and macOS. Everything else works the same.
+
+3. Install the pre-commit hook, which runs Ruff on every commit:
+
+   ```
+   uv run pre-commit install
+   ```
+
+Common commands:
+
+```
+uv run ruff check .          # lint
+uv run ruff check --fix .    # lint and apply safe fixes
+uv run ruff format .         # format
+uv run pre-commit run --all-files
+uv build                     # build the sdist and wheel into dist/
+```
+
+If you use VS Code, install the recommended Ruff extension (listed in `.vscode/extensions.json`) to format and fix imports on save.
+
+### Releasing
+
+Bump `version` in `pyproject.toml` (for example with `uv version --bump patch`) and merge to `main`. The release workflow publishes any version not already on PyPI and creates a matching GitHub release.
