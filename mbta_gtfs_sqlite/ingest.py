@@ -129,8 +129,6 @@ def get_augmented_trip_rows(reader: GtfsReader) -> Iterable[Dict[str, str]]:
     for trip_row in reader.read_trips():
         extra_fields = extra_fields_by_trip_id.get(trip_row["trip_id"])
         if extra_fields is None:
-            # Some archived feeds list trips with no stop times (e.g. 20170421's
-            # CR-Weekday-Spring-17-539). They have no times, so they can't be scheduled.
             continue
         yield {
             **trip_row,
