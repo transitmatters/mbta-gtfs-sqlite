@@ -16,16 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
 
-      - name: Install Poetry
-        run: pipx install poetry
-
       - name: Read version from pyproject.toml
         id: version
-        run: echo "version=$(poetry version --short)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(uv version --short)" >> "$GITHUB_OUTPUT"
 
       - name: Check whether this version is already on PyPI
         id: check
@@ -43,7 +41,7 @@ jobs:
 
       - name: Build
         if: steps.check.outputs.publish == 'true'
-        run: poetry build
+        run: uv build
 
       - name: Publish to PyPI
         if: steps.check.outputs.publish == 'true'

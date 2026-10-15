@@ -11,13 +11,30 @@ dependencies = [
     "more-itertools>=10.8.0,<12",
 ]
 
-[tool.poetry]
-packages = [{ include = "mbta_gtfs_sqlite" }]
+[dependency-groups]
+dev = [
+    # memray only supports Linux and macOS.
+    "memray>=1.19.0 ;  sys_platform != 'win32'",
+    "pre-commit>=4.6.2",
+    "ruff>=0.16.10",
+]
 
-[tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
-memray = "^1.19.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.sdist]
+include = ["mbta_gtfs_sqlite", "README.md"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E731"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
