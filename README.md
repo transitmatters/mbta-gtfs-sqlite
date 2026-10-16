@@ -197,3 +197,15 @@ all_routes = session.query(Route).all()
 ```
 
 Please refer to the `models/` subdirectory for the database schema, and the [SQLAlchemy documentation](https://www.sqlalchemy.org/) for more info on how to query it.
+
+# Development
+
+This project uses [Poetry](https://python-poetry.org/):
+
+```
+poetry install
+poetry run black .
+poetry run python scripts/benchmark_ingest.py
+```
+
+The benchmark downloads the current MBTA feed into `feeds/` and reports ingest time and peak memory. Bumping `version` in `pyproject.toml` on `main` publishes a new release to PyPI.
