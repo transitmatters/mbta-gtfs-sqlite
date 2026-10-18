@@ -1,6 +1,6 @@
 [project]
 name = "mbta-gtfs-sqlite"
-version = "1.2.0"
+version = "1.2.1"
 description = "Query the MBTA's static GTFS feeds using sqlite"
 authors = [{ name = "Ian Reynolds", email = "ireynolds@transitmatters.info" }]
 readme = "README.md"
