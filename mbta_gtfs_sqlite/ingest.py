@@ -127,7 +127,9 @@ def ingest_rows(
 def get_augmented_trip_rows(reader: GtfsReader) -> Iterable[Dict[str, str]]:
     extra_fields_by_trip_id = get_trip_extra_fields_by_trip_id(reader.read_stop_times())
     for trip_row in reader.read_trips():
-        extra_fields = extra_fields_by_trip_id[trip_row["trip_id"]]
+        extra_fields = extra_fields_by_trip_id.get(trip_row["trip_id"])
+        if extra_fields is None:
+            continue
         yield {
             **trip_row,
             "start_time": extra_fields["start_time"],
